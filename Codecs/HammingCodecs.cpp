@@ -204,13 +204,15 @@ std::vector<bool> HammingCodecs::Decode(const std::vector<bool>& code) const
             }
             else
             {
-                ++m;
+                ++m;        // the position of the next message bit.
             }
             ++c;
         }
         // If the error bit is not a redundant bit.
-        if (e != (p >> 1))
+        p >>= 1;
+        if (e != p)
         {
+            --m;
             result[m] = !result[m];
         }
     }
@@ -221,8 +223,8 @@ std::vector<bool> HammingCodecs::Decode(const std::vector<bool>& code) const
 #include <iostream>
 void HammingCodecs::Test(void)
 {
-    // 
-    HammingCodecs hc(8);
+    // 8-bit
+    HammingCodecs hc8(8);
     BitMatrix e8 = BitMatrix::FromString(
         "[ 1   1   0   1   1   0   1   0 ;"
         "  1   0   1   1   0   1   1   0 ;"
@@ -236,14 +238,14 @@ void HammingCodecs::Test(void)
         "  0   0   0   0   0   1   0   0 ;"
         "  0   0   0   0   0   0   1   0 ;"
         "  0   0   0   0   0   0   0   1 ]");
-    assert(e8 == hc.GetEncoderMatrix());
+    assert(e8 == hc8.GetEncoderMatrix());
 
     BitMatrix c8 = BitMatrix::FromString(
         "[ 1   0   1   0   1   0   1   0   1   0   1   0 ;"
         "  0   1   1   0   0   1   1   0   0   1   1   0 ;"
         "  0   0   0   1   1   1   1   0   0   0   0   1 ;"
         "  0   0   0   0   0   0   0   1   1   1   1   1 ]");
-    assert(c8 == hc.GetCheckerMatrix());
+    assert(c8 == hc8.GetCheckerMatrix());
 
     BitMatrix d8 = BitMatrix::FromString(
         "[ 0   0   1   0   0   0   0   0   0   0   0   0 ;"
@@ -254,28 +256,96 @@ void HammingCodecs::Test(void)
         "  0   0   0   0   0   0   0   0   0   1   0   0 ;"
         "  0   0   0   0   0   0   0   0   0   0   1   0 ;"
         "  0   0   0   0   0   0   0   0   0   0   0   1 ]");
-    assert(d8 == hc.GetDecoderMatrix());
+    assert(d8 == hc8.GetDecoderMatrix());
 
     // Encode
     std::vector<bool> msg = DataIo::FromString("1010 1010");
     std::vector<bool> code = DataIo::FromString("1111 0100 1010");
-    assert(code == hc.Encode(msg));
+    assert(code == hc8.Encode(msg));
 
     // CheckError
     code = DataIo::FromString("1111 0100 1010");
-    size_t err = hc.CheckError(code);
+    size_t err = hc8.CheckError(code);
     assert(err == 0);
 
     code = DataIo::FromString("1111 0101 1010");
-    err = hc.CheckError(code);
+    err = hc8.CheckError(code);
     assert(err == 8);
 
     // Decode
     msg = DataIo::FromString("1010 1010");
     code = DataIo::FromString("1111 0100 1010");
-    assert(msg == hc.Decode(code));
+    assert(msg == hc8.Decode(code));
 
     msg = DataIo::FromString("1010 1010");
     code = DataIo::FromString("1111 0101 1010");
-    assert(msg == hc.Decode(code));
+    assert(msg == hc8.Decode(code));
+
+    // 12-bit
+    HammingCodecs hc12(12);
+    BitMatrix e12 = BitMatrix::FromString(
+       "[ 1   1   0   1   1   0   1   0   1   0   1   1 ;"
+       "  1   0   1   1   0   1   1   0   0   1   1   0 ;"
+       "  1   0   0   0   0   0   0   0   0   0   0   0 ;"
+       "  0   1   1   1   0   0   0   1   1   1   1   0 ;"
+       "  0   1   0   0   0   0   0   0   0   0   0   0 ;"
+       "  0   0   1   0   0   0   0   0   0   0   0   0 ;"
+       "  0   0   0   1   0   0   0   0   0   0   0   0 ;"
+       "  0   0   0   0   1   1   1   1   1   1   1   0 ;"
+       "  0   0   0   0   1   0   0   0   0   0   0   0 ;"
+       "  0   0   0   0   0   1   0   0   0   0   0   0 ;"
+       "  0   0   0   0   0   0   1   0   0   0   0   0 ;"
+       "  0   0   0   0   0   0   0   1   0   0   0   0 ;"
+       "  0   0   0   0   0   0   0   0   1   0   0   0 ;"
+       "  0   0   0   0   0   0   0   0   0   1   0   0 ;"
+       "  0   0   0   0   0   0   0   0   0   0   1   0 ;"
+       "  0   0   0   0   0   0   0   0   0   0   0   1 ;"
+       "  0   0   0   0   0   0   0   0   0   0   0   1 ]");
+    assert(e12 == hc12.GetEncoderMatrix());
+
+    BitMatrix c12 = BitMatrix::FromString(
+      "[ 1   0   1   0   1   0   1   0   1   0   1   0   1   0   1   0   1 ;"
+      "  0   1   1   0   0   1   1   0   0   1   1   0   0   1   1   0   0 ;"
+      "  0   0   0   1   1   1   1   0   0   0   0   1   1   1   1   0   0 ;"
+      "  0   0   0   0   0   0   0   1   1   1   1   1   1   1   1   0   0 ;"
+      "  0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   1 ]");
+    assert(c12 == hc12.GetCheckerMatrix());
+
+    BitMatrix d12 = BitMatrix::FromString(
+       "[ 0   0   1   0   0   0   0   0   0   0   0   0   0   0   0   0   0 ;"
+       "  0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0 ;"
+       "  0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0 ;"
+       "  0   0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0 ;"
+       "  0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0   0 ;"
+       "  0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0 ;"
+       "  0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0 ;"
+       "  0   0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0 ;"
+       "  0   0   0   0   0   0   0   0   0   0   0   0   1   0   0   0   0 ;"
+       "  0   0   0   0   0   0   0   0   0   0   0   0   0   1   0   0   0 ;"
+       "  0   0   0   0   0   0   0   0   0   0   0   0   0   0   1   0   0 ;"
+       "  0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   1 ]");
+    assert(d12 == hc12.GetDecoderMatrix());
+
+    // Encode
+    msg = DataIo::FromString("1010 1010 1010");
+    code = DataIo::FromString("1 0110 1001 0101 0100");
+    assert(code == hc12.Encode(msg));
+
+    // CheckError
+    code = DataIo::FromString("1 0110 1001 0101 0100");
+    err = hc12.CheckError(code);
+    assert(err == 0);
+
+    code = DataIo::FromString("1 0110 1101 0101 0100");
+    err = hc12.CheckError(code);
+    assert(err == 7);
+
+    // Decode
+    msg = DataIo::FromString("1010 1010 1010");
+    code = DataIo::FromString("1 0110 1001 0101 0100");
+    assert(msg == hc12.Decode(code));
+
+    msg = DataIo::FromString("1010 1010 1010");
+    code = DataIo::FromString("1 0110 1101 0101 0100");
+    assert(msg == hc12.Decode(code));
 }

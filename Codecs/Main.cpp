@@ -9,6 +9,7 @@ void Test(void);
 
 int main(void)
 {
+    std::cout << "Codecs v1.1 (2017.05.11)" << std::endl;
     Test();
 //    return 0;
     UiEngine ui;
