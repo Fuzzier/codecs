@@ -135,7 +135,9 @@ void UiEngine::CrcEncode(void)
         std::cout << "Error: CRC generator has not been set!" << std::endl;
         return;
     }
-    PolynomialDivider::Divide(bitSeq_, crcGen_, quotient, remainder);
+    std::vector<bool> dividend = bitSeq_;
+    dividend.resize(dividend.size() + crcGen_.size() - 1, false);
+    PolynomialDivider::Divide(dividend, crcGen_, quotient, remainder);
     std::cout << "The quotient (" << quotient.size() << " bits):" << std::endl
               << DataIo::ToString(quotient) << std::endl;
     std::cout << "The remainder (" << remainder.size() << " bits):" << std::endl
