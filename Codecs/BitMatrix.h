@@ -52,5 +52,5 @@ public:
 private:
     size_t d1_;     ///< number of rows.
     size_t d2_;     ///< number of columns.
-    bool* data_;    ///< values are stored column-size.
+    bool* data_;    ///< values are stored column-wise.
 };
